@@ -5,19 +5,50 @@ import Button from "../components/Button";
 import Table from "../components/Table";
 import Card from "../components/Card";
 import { rngForReplica } from "../utils/rng";
+import * as V from "../utils/validators";
+
+const DEFAULTS = {
+  nsim: 5,
+  njuegos: 10,
+  costo: 2,
+  pagoJugador: 5,
+  seed: "",
+};
 
 export default function ModDice() {
-  const [nsim, setNsim] = useState(5);
-  const [njuegos, setNjuegos] = useState(10);
-  const [costo, setCosto] = useState(2);
-  const [pagoJugador, setPagoJugador] = useState(5);
-  const [seed, setSeed] = useState("");
+  const [nsim, setNsim] = useState(DEFAULTS.nsim);
+  const [njuegos, setNjuegos] = useState(DEFAULTS.njuegos);
+  const [costo, setCosto] = useState(DEFAULTS.costo);
+  const [pagoJugador, setPagoJugador] = useState(DEFAULTS.pagoJugador);
+  const [seed, setSeed] = useState(DEFAULTS.seed);
+
   const [rows, setRows] = useState([]);
   const [avg, setAvg] = useState({ g: 0, n: 0, p: 0 });
+  const [err, setErr] = useState({});
 
   const simulate = () => {
+    const { ok, errors } = V.validate({
+      nsim:        { value: nsim,        rules: ["required", "number", "integer", "gt0"] },
+      njuegos:     { value: njuegos,     rules: ["required", "number", "integer", "gt0"] },
+      costo:       { value: costo,       rules: ["required", "number", "ge0"] },
+      pagoJugador: { value: pagoJugador, rules: ["required", "number", "ge0"] },
+    });
+
+    const nextErr = { ...errors };
+
+    if (seed !== "") {
+      const maybe = Number(seed);
+      if (!Number.isNaN(maybe) && maybe < 0) {
+        nextErr.seed = "La semilla no puede ser negativa";
+      }
+    }
+
+    setErr(nextErr);
+    if (!ok || nextErr.seed) return;
+
     const base = seed || Date.now();
     const rngRep = rngForReplica(base);
+
     const out = [];
     let sumG = 0, sumN = 0, sumP = 0;
 
@@ -27,8 +58,12 @@ export default function ModDice() {
       for (let j = 0; j < njuegos; j++) {
         const d1 = 1 + Math.floor(rng() * 6);
         const d2 = 1 + Math.floor(rng() * 6);
-        if (d1 + d2 === 7) GNETA += (costo - pagoJugador);
-        else { GNETA += costo; NJUEC++; }
+        if (d1 + d2 === 7) {
+          GNETA += (costo - pagoJugador);
+        } else {
+          GNETA += costo;
+          NJUEC++;
+        }
       }
       const PJUEC = (NJUEC / njuegos) * 100;
       out.push([s, GNETA.toFixed(2), NJUEC, PJUEC.toFixed(2) + " %"]);
@@ -39,20 +74,87 @@ export default function ModDice() {
     setAvg({ g: sumG / nsim, n: sumN / nsim, p: sumP / nsim });
   };
 
+  const handleLimpiar = () => {
+    setNsim(0);
+    setNjuegos(0);
+    setCosto(0);
+    setPagoJugador(0);
+    setSeed("");
+    setRows([]);
+    setAvg({ g: 0, n: 0, p: 0 });
+    setErr({});
+  };
+
+  const handleRestablecer = () => {
+    setNsim(DEFAULTS.nsim);
+    setNjuegos(DEFAULTS.njuegos);
+    setCosto(DEFAULTS.costo);
+    setPagoJugador(DEFAULTS.pagoJugador);
+    setSeed(DEFAULTS.seed);
+    setRows([]);
+    setAvg({ g: 0, n: 0, p: 0 });
+    setErr({});
+  };
+
   return (
     <div>
       <Section title="Parámetros">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <Field label="Nº de Simulaciones"><input className="w-full bg-zinc-800 rounded-lg px-3 py-2" type="number" value={nsim} onChange={e => setNsim(+e.target.value)} /></Field>
-            <Field label="Nº de Juegos [por sim]"><input className="w-full bg-zinc-800 rounded-lg px-3 py-2" type="number" value={njuegos} onChange={e => setNjuegos(+e.target.value)} /></Field>
-            <Field label="Costo del Juego (Bs)"><input className="w-full bg-zinc-800 rounded-lg px-3 py-2" type="number" value={costo} onChange={e => setCosto(+e.target.value)} /></Field>
-            <Field label="Pago si gana jugador (Bs)"><input className="w-full bg-zinc-800 rounded-lg px-3 py-2" type="number" value={pagoJugador} onChange={e => setPagoJugador(+e.target.value)} /></Field>
+            <Field label="Nº de Simulaciones" error={err.nsim}>
+              <input
+                min={0}
+                className="w-full bg-zinc-800 rounded-lg px-3 py-2"
+                type="number"
+                value={nsim}
+                onChange={e => setNsim(+e.target.value)}
+              />
+            </Field>
+            <Field label="Nº de Juegos [por sim]" error={err.njuegos}>
+              <input
+                min={0}
+                className="w-full bg-zinc-800 rounded-lg px-3 py-2"
+                type="number"
+                value={njuegos}
+                onChange={e => setNjuegos(+e.target.value)}
+              />
+            </Field>
+            <Field label="Costo del Juego (Bs)" error={err.costo}>
+              <input
+                min={0}
+                step="0.01"
+                className="w-full bg-zinc-800 rounded-lg px-3 py-2"
+                type="number"
+                value={costo}
+                onChange={e => setCosto(+e.target.value)}
+              />
+            </Field>
+            <Field label="Pago si gana jugador (Bs)" error={err.pagoJugador}>
+              <input
+                min={0}
+                step="0.01"
+                className="w-full bg-zinc-800 rounded-lg px-3 py-2"
+                type="number"
+                value={pagoJugador}
+                onChange={e => setPagoJugador(+e.target.value)}
+              />
+            </Field>
           </div>
           <div>
-            <Field label="Semilla (opcional)"><input className="w-full bg-zinc-800 rounded-lg px-3 py-2" value={seed} onChange={e => setSeed(e.target.value)} placeholder="vacío = aleatoria" /></Field>
+            <Field label="Semilla (opcional)" error={err.seed}>
+              <input
+                className="w-full bg-zinc-800 rounded-lg px-3 py-2"
+                value={seed}
+                onChange={e => setSeed(e.target.value)}
+                placeholder="vacío = aleatoria"
+              />
+            </Field>
           </div>
-          <div className="flex gap-2 mt-2"><Button onClick={simulate}>SIMULAR</Button><Button variant="ghost" onClick={() => { setRows([]); setAvg({ g: 0, n: 0, p: 0 }); }}>LIMPIAR</Button></div>
+          <div className="flex gap-2 mt-2">
+            <Button onClick={simulate}>SIMULAR</Button>
+            <Button variant="ghost" onClick={handleLimpiar}>LIMPIAR</Button>
+            <Button variant="ghost" onClick={handleRestablecer}>VALORES EJERCICIO</Button>
+          </div>
         </div>
       </Section>
 
