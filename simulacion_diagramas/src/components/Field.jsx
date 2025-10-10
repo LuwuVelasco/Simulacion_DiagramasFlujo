@@ -1,8 +1,11 @@
-export default function Field({ label, children }) {
+export default function Field({ label, children, error }) {
   return (
-    <label className="grid grid-cols-2 md:grid-cols-3 items-center gap-2 py-1 text-sm">
-      <span className="text-zinc-300">{label}</span>
-      <span className="md:col-span-2">{children}</span>
+    <label className="block mb-3">
+      <div className="mb-1 text-sm text-zinc-400">{label}</div>
+      {children}
+      {error ? (
+        <div className="mt-1 text-xs text-red-400">{error}</div>
+      ) : null}
     </label>
   );
 }
