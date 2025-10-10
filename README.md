@@ -1,6 +1,6 @@
 # Simulacion_DiagramasFlujo
 Implementación de diagramas de flujo de los ejercicios:
-- Interés Simple
+- Interés Fijo
 - Interés Variable
 - Lanzamiento de Dados
 - Gallina Pone Huevos
