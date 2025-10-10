@@ -30,8 +30,8 @@ export default function ModDice() {
     const { ok, errors } = V.validate({
       nsim:        { value: nsim,        rules: ["required", "number", "integer", "gt0"] },
       njuegos:     { value: njuegos,     rules: ["required", "number", "integer", "gt0"] },
-      costo:       { value: costo,       rules: ["required", "number", "ge0"] },
-      pagoJugador: { value: pagoJugador, rules: ["required", "number", "ge0"] },
+      costo:       { value: costo,       rules: ["required", "number", "gt0"] },
+      pagoJugador: { value: pagoJugador, rules: ["required", "number", "gt0"] },
     });
 
     const nextErr = { ...errors };

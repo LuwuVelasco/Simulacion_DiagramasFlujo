@@ -39,8 +39,8 @@ export default function ModHen() {
     const { ok, errors } = V.validate({
       nsim:   { value: nsim,   rules: ["required", "number", "integer", "gt0"] },
       dias:   { value: dias,   rules: ["required", "number", "integer", "gt0"] },
-      pvh:    { value: pvh,    rules: ["required", "number", "ge0"] },
-      pvp:    { value: pvp,    rules: ["required", "number", "ge0"] },
+      pvh:    { value: pvh,    rules: ["required", "number", "gt0"] },
+      pvp:    { value: pvp,    rules: ["required", "number", "gt0"] },
       lambda: { value: lambda, rules: ["required", "number", "gt0"] },
       pRoto:  { value: pRoto,  rules: ["required", "number", "prob01"] },
       pEclo:  { value: pEclo,  rules: ["required", "number", "prob01"] },
